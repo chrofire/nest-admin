@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common'
+import { CommonModule } from './modules/common.module'
 
 @Module({
-    imports: [],
+    imports: [CommonModule],
     controllers: [],
     providers: []
 })
