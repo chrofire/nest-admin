@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common'
 import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/swagger'
 import { AppModule } from './app.module'
 import useConfig from 'config'
+import { TransformInterceptor } from './interceptors/transform.interceptor'
 
 const config = useConfig()
 
@@ -19,6 +20,9 @@ async function bootstrap () {
     const swaggerOptions: SwaggerDocumentOptions = {}
     const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig, swaggerOptions)
     SwaggerModule.setup('swagger', app, swaggerDocument)
+
+    // 全局响应拦截器
+    app.useGlobalInterceptors(new TransformInterceptor())
 
     await app.listen(config.port)
 
