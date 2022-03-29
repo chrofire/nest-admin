@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/
 import { AppModule } from './app.module'
 import useConfig from 'config'
 import { TransformInterceptor } from './interceptors/transform.interceptor'
+import { HttpExceptionFilter } from './filters/httpException.filter'
 
 const config = useConfig()
 
@@ -23,6 +24,9 @@ async function bootstrap () {
 
     // 全局响应拦截器
     app.useGlobalInterceptors(new TransformInterceptor())
+
+    // 全局Http异常过滤器
+    app.useGlobalFilters(new HttpExceptionFilter())
 
     await app.listen(config.port)
 
