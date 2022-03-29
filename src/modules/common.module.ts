@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
+import { TypeOrmModule } from '@nestjs/typeorm'
 import config, { isDev } from 'config'
 
 @Module({
@@ -9,6 +10,12 @@ import config, { isDev } from 'config'
             load: [config],
             isGlobal: true,
             envFilePath: [isDev() ? '.env.development' : '.env.production', '.env']
+        }),
+        // TypeOrm模块
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => config.get('database')
         })
     ],
     exports: [],
