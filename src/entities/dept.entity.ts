@@ -1,3 +1,4 @@
+import * as dayjs from 'dayjs'
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
 @Entity('sys_dept')
@@ -19,4 +20,31 @@ export class Dept {
 
     @Column({ comment: '备注', nullable: true })
     public remark?: string
+
+    @Column({
+        name: 'create_at',
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+        readonly: true,
+        transformer: {
+            to: (value) => value,
+            from: (value) => dayjs(value).format('YYYY-MM-DD HH:mm:ss')
+        },
+        comment: '创建时间'
+    })
+    public createAt: Date
+
+    @Column({
+        name: 'update_at',
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+        onUpdate: 'CURRENT_TIMESTAMP',
+        readonly: true,
+        transformer: {
+            to: (value) => value,
+            from: (value) => dayjs(value).format('YYYY-MM-DD HH:mm:ss')
+        },
+        comment: '更新时间'
+    })
+    public updateAt: Date
 }

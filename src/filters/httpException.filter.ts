@@ -28,11 +28,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const _errorResponse = exception.getResponse()
         switch (typeof _errorResponse) {
             case 'object':
-                errorResponse = {
-                    success: false,
-                    message: exception.message,
-                    error: _errorResponse,
-                    data: null
+                if (
+                    _errorResponse.hasOwnProperty(`success`)
+                    && _errorResponse.hasOwnProperty(`message`)
+                    && _errorResponse.hasOwnProperty(`data`)
+                ) {
+                    errorResponse = _errorResponse as ErrorResponse
+                } else {
+                    errorResponse = {
+                        success: false,
+                        message: exception.message,
+                        error: _errorResponse,
+                        data: null
+                    }
                 }
                 break
             default:
