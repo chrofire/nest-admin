@@ -1,14 +1,10 @@
 import { ApiProperty, IntersectionType } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
-import { IsOptional, IsInt, IsNotEmpty, IsString, MinLength, MaxLength, IsIn } from 'class-validator'
+import { MaxLength, MinLength, IsString, IsNotEmpty, IsIn, IsInt, IsOptional } from 'class-validator'
+import { PageOptionsDto } from 'src/common/dto/pageOptions.dto'
 
-export class AddDeptDto {
-    @ApiProperty({ description: '父级id', required: false, default: null })
-    @IsInt()
-    @IsOptional()
-    public parentId?: number
-
-    @ApiProperty({ description: '部门名称' })
+export class AddRoleDto {
+    @ApiProperty({ description: '角色名称' })
     @MaxLength(20)
     @MinLength(3)
     @IsString()
@@ -20,28 +16,23 @@ export class AddDeptDto {
     @IsInt()
     public state: number
 
-    @ApiProperty({ description: '排序', required: false, default: null })
-    @IsInt()
-    @IsOptional()
-    public order?: number
-
     @ApiProperty({ description: '备注', required: false, default: null })
     @IsString()
     @IsOptional()
     public remark?: string
 }
 
-export class DeleteDeptDto {
+export class DeleteRoleDto {
     @ApiProperty({ description: 'id' })
     @IsInt()
     @IsNotEmpty()
     public id: number
 }
 
-export class UpdateDeptDto extends IntersectionType(DeleteDeptDto, AddDeptDto) {}
+export class UpdateRoleDto extends IntersectionType(DeleteRoleDto, AddRoleDto) {}
 
-export class FindDeptListDto {
-    @ApiProperty({ description: '部门名称', required: false })
+export class FindRoleListDto {
+    @ApiProperty({ description: '角色名称', required: false })
     @IsString()
     @IsOptional()
     public name?: string
@@ -52,3 +43,5 @@ export class FindDeptListDto {
     @IsOptional()
     public state?: number
 }
+
+export class FindRolePageListDto extends IntersectionType(FindRoleListDto, PageOptionsDto) {}
