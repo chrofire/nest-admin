@@ -12,8 +12,8 @@ export class Dept {
     @Column({ comment: '部门名称', length: 20 })
     public name: string
 
-    @Column({ comment: '状态 (0:启用 1:停用)', default: 0 })
-    public state?: number
+    @Column({ comment: '状态 (0:启用 1:停用)' })
+    public state: number
 
     @Column({ comment: '排序', nullable: true })
     public order?: number
