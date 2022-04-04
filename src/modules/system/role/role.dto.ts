@@ -37,9 +37,6 @@ export class FindRoleListDto {
     @IsOptional()
     public name?: string
     @ApiProperty({ description: '状态', required: false })
-    @IsIn([0, 1])
-    @IsInt()
-    @Type(() => Number)
     @IsOptional()
     public state?: number
 }

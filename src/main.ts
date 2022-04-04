@@ -12,6 +12,9 @@ const config = useConfig()
 async function bootstrap () {
     const app = await NestFactory.create(AppModule)
 
+    // 设置全局前缀
+    app.setGlobalPrefix(`api`)
+
     // swagger
     const swaggerConfig = new DocumentBuilder()
         .setTitle('nest-admin')

@@ -78,4 +78,13 @@ export class RoleService {
             ResponseData.error(err.message)
         }
     }
+
+    // 根据角色名称查找角色列表
+    async findRolesByName (name: string) {
+        return await this.roleRepository.find({
+            where: {
+                name
+            }
+        })
+    }
 }

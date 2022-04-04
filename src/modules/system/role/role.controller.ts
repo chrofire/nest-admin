@@ -12,6 +12,11 @@ export class RoleController {
     @Post('add')
     @ApiOperation({ summary: '添加角色' })
     async add (@Body() dto: AddRoleDto) {
+        const { name } = dto
+
+        const roles = await this.roleService.findRolesByName(name)
+        if (roles.length) return ResponseData.error('已存在该角色名称')
+
         await this.roleService.addRole(dto)
         return ResponseData.success(null, '添加成功')
     }
@@ -30,7 +35,11 @@ export class RoleController {
     @Post('update')
     @ApiOperation({ summary: '更新角色' })
     async update (@Body() dto: UpdateRoleDto) {
-        const { id } = dto
+        const { id, name } = dto
+
+        const roles = await this.roleService.findRolesByName(name)
+        if (roles.filter((item) => item.id !== id).length) return ResponseData.error('已存在该角色名称')
+
         const { affected } = await this.roleService.updateRole(dto)
         if (affected < 1) {
             return ResponseData.error(`更新失败，未找到id为${id}的记录`)
