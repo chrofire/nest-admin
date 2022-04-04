@@ -40,10 +40,7 @@ export class UserController {
         const user = await this.userService.findUserByUsername(username)
         if (user && user.id !== id) return ResponseData.error('已存在该用户名')
 
-        const { affected } = await this.userService.updateUser(dto)
-        if (affected < 1) {
-            return ResponseData.error(`更新失败，未找到id为${id}的记录`)
-        }
+        await this.userService.updateUser(dto)
         return ResponseData.success(null, '更新成功')
     }
 

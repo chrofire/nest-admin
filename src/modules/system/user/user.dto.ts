@@ -1,4 +1,5 @@
 import { ApiProperty, IntersectionType, OmitType } from '@nestjs/swagger'
+import { Type } from 'class-transformer'
 import {
     IsOptional,
     IsInt,
@@ -6,7 +7,9 @@ import {
     IsString,
     MinLength,
     MaxLength,
-    IsIn
+    IsIn,
+    IsArray,
+    IsNumber
 } from 'class-validator'
 import { PageOptionsDto } from 'src/common/dto/pageOptions.dto'
 
@@ -60,6 +63,11 @@ export class AddUserDto {
     @IsString()
     @IsOptional()
     public remark?: string
+
+    @ApiProperty({ description: '角色id列表', type: [Number], default: [] })
+    @IsNumber({}, { each: true })
+    @IsArray()
+    public roleIdList?: number[]
 }
 
 export class DeleteUserDto {
@@ -76,12 +84,15 @@ export class UpdateUserDto extends IntersectionType(
 
 export class FindUserListDto {
     @ApiProperty({ description: '用户名', required: false })
-    @IsString()
     @IsOptional()
     public username?: string
     @ApiProperty({ description: '昵称', required: false })
     @IsOptional()
     public nickname?: number
+    @ApiProperty({ description: '部门id', required: false })
+    @Type(() => Number)
+    @IsOptional()
+    public deptId?: number
 }
 
 export class FindUserPageListDto extends IntersectionType(FindUserListDto, PageOptionsDto) {}
