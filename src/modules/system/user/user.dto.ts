@@ -89,6 +89,9 @@ export class FindUserListDto {
     @ApiProperty({ description: '昵称', required: false })
     @IsOptional()
     public nickname?: number
+    @ApiProperty({ description: '状态', required: false })
+    @IsOptional()
+    public state?: number
     @ApiProperty({ description: '部门id', required: false })
     @Type(() => Number)
     @IsOptional()
