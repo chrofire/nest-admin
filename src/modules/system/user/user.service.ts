@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
 import { difference } from 'lodash'
 import { Role } from 'src/entities/role.entity'
@@ -9,7 +10,7 @@ import { genVagueSearchObj } from 'src/utils/ormUtils'
 import { ResponseData } from 'src/utils/responseData'
 import { EntityManager, In, Repository } from 'typeorm'
 import { DeptService } from '../dept/dept.service'
-import { AddUserDto, FindUserListDto, FindUserPageListDto, UpdateUserDto } from './user.dto'
+import { AddUserDto, FindUserListDto, FindUserPageListDto, LoginDto, UpdateUserDto } from './user.dto'
 
 interface IFindUserList extends User {
     userRole?: ({ role: Role })[],
@@ -21,7 +22,8 @@ export class UserService {
         @InjectRepository(User) private readonly userRepository: Repository<User>,
         @InjectRepository(UserRole) private readonly userRoleRepository: Repository<UserRole>,
         @InjectEntityManager() private readonly entityManager: EntityManager,
-        private readonly deptService: DeptService
+        private readonly deptService: DeptService,
+        private readonly jwtService: JwtService
     ) {}
 
     // 添加用户
@@ -221,4 +223,33 @@ export class UserService {
             .getOne()
         return user
     }
+
+    // 登录用户
+    async loginUser (dto: LoginDto) {
+        try {
+            const { username, password } = dto
+
+            // 检查用户是否存在
+            const user = await this.findUserByUsername(username)
+            if (!user) return ResponseData.error('不存在该用户')
+
+            // 对比密码
+            const validPassword = Bcrypt.decrypt(password, user.password)
+            if (!validPassword) ResponseData.error('密码错误')
+
+            // 生成token
+            const token = `Bearer ${this.jwtService.sign({ ...user })}`
+
+            // 删除密码字段
+            Reflect.deleteProperty(user, 'password')
+
+            return {
+                token,
+                userInfo: user
+            }
+        } catch (err) {
+            ResponseData.error(err.message)
+        }
+    }
+
 }

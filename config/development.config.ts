@@ -12,5 +12,9 @@ export default () => ({
         autoLoadEntities: true, // 自动导入entity文件
         synchronize: true, // 同步
         logging: false // 日志
+    },
+    jwt: {
+        secret: process.env.JWT_SECRET || `secret`,
+        expiresIn: process.env.JWT_EXPIRESIN || '2h'
     }
 })

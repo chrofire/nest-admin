@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { JwtModule } from '@nestjs/jwt'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import config, { isDev } from 'config'
 
@@ -16,9 +17,20 @@ import config, { isDev } from 'config'
             imports: [ConfigModule],
             inject: [ConfigService],
             useFactory: (config: ConfigService) => config.get('database')
+        }),
+        // Jwt模块
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => {
+                return {
+                    secret: config.get('jwt').secret,
+                    signOptions: { expiresIn: config.get('jwt').expiresIn }
+                }
+            }
         })
     ],
-    exports: [],
+    exports: [JwtModule],
     providers: []
 })
 export class CommonModule {}

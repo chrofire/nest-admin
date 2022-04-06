@@ -1,14 +1,21 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ResponseData } from 'src/utils/responseData'
-import { AddUserDto, DeleteUserDto, FindUserListDto, FindUserPageListDto, UpdateUserDto } from './user.dto'
+import { AddUserDto, DeleteUserDto, FindUserListDto, FindUserPageListDto, LoginDto, UpdateUserDto } from './user.dto'
 import { UserService } from './user.service'
 
 @Controller('user')
 @ApiTags('用户')
 export class UserController {
     constructor (private readonly userService: UserService) {}
-    
+
+    @Post('login')
+    @ApiOperation({ summary: '登录' })
+    async login (@Body() dto: LoginDto) {
+        const res = await this.userService.loginUser(dto)
+        return ResponseData.success(res, '登录成功')
+    }
+
     @Post('add')
     @ApiOperation({ summary: '添加用户' })
     async add (@Body() dto: AddUserDto) {

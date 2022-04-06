@@ -1,4 +1,4 @@
-import { ApiProperty, IntersectionType, OmitType } from '@nestjs/swagger'
+import { ApiProperty, IntersectionType, OmitType, PickType } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 import {
     IsOptional,
@@ -99,3 +99,5 @@ export class FindUserListDto {
 }
 
 export class FindUserPageListDto extends IntersectionType(FindUserListDto, PageOptionsDto) {}
+
+export class LoginDto extends PickType(AddUserDto, ['username', 'password'] as const) {}
