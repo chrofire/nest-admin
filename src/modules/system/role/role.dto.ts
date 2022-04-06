@@ -1,6 +1,5 @@
 import { ApiProperty, IntersectionType } from '@nestjs/swagger'
-import { Type } from 'class-transformer'
-import { MaxLength, MinLength, IsString, IsNotEmpty, IsIn, IsInt, IsOptional } from 'class-validator'
+import { MaxLength, MinLength, IsString, IsNotEmpty, IsIn, IsInt, IsOptional, IsNumber, IsArray } from 'class-validator'
 import { PageOptionsDto } from 'src/common/dto/pageOptions.dto'
 
 export class AddRoleDto {
@@ -20,6 +19,11 @@ export class AddRoleDto {
     @IsString()
     @IsOptional()
     public remark?: string
+
+    @ApiProperty({ description: '菜单id列表', type: [Number], default: [] })
+    @IsNumber({}, { each: true })
+    @IsArray()
+    public menuIdList?: number[]
 }
 
 export class DeleteRoleDto {

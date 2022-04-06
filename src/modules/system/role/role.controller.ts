@@ -40,10 +40,7 @@ export class RoleController {
         const roles = await this.roleService.findRolesByName(name)
         if (roles.filter((item) => item.id !== id).length) return ResponseData.error('已存在该角色名称')
 
-        const { affected } = await this.roleService.updateRole(dto)
-        if (affected < 1) {
-            return ResponseData.error(`更新失败，未找到id为${id}的记录`)
-        }
+        await this.roleService.updateRole(dto)
         return ResponseData.success(null, '更新成功')
     }
 

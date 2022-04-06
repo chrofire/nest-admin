@@ -1,20 +1,47 @@
 import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
+import { difference } from 'lodash'
+import { Menu } from 'src/entities/menu.entity'
 import { Role } from 'src/entities/role.entity'
-import { genVagueSearchObj, genPageOptionsObj } from 'src/utils/ormUtils'
+import { RoleMenu } from 'src/entities/roleMenu.entity'
+import { genVagueSearchObj } from 'src/utils/ormUtils'
 import { ResponseData } from 'src/utils/responseData'
-import { Repository } from 'typeorm'
+import { EntityManager, Repository } from 'typeorm'
 import { AddRoleDto, FindRoleListDto, FindRolePageListDto, UpdateRoleDto } from './role.dto'
+
+interface IFindRoleList extends Role {
+    roleMenu?: RoleMenu[],
+    menus?: number[]
+}
 
 @Injectable()
 export class RoleService {
-    constructor (@InjectRepository(Role) private readonly roleRepository: Repository<Role>) {}
+    constructor (
+        @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
+        @InjectRepository(RoleMenu) private readonly roleMenuRepository: Repository<RoleMenu>,
+        @InjectEntityManager() private readonly entityManager: EntityManager
+    ) {}
 
     // 添加角色
     async addRole (dto: AddRoleDto) {
         try {
-            const res = await this.roleRepository.save(dto)
-            return res
+            const { menuIdList = [], ...args } = dto
+            await this.entityManager.transaction(async (manager) => {
+                // 插入角色信息
+                const role = await manager.insert(Role, args)
+                const {
+                    identifiers: [{ id: roleId }]
+                } = role
+                // 角色关联菜单
+                for (let i = 0; i < menuIdList.length; i++) {
+                    const menuId = menuIdList[i]
+                    const menu = await manager.findOneBy(Menu, {
+                        id: menuId
+                    })
+                    if (!menu) throw new Error(`不存在id为${menuId}的菜单记录`)
+                    await manager.insert(RoleMenu, { roleId, menuId })
+                }
+            })
         } catch (err) {
             ResponseData.error(err.message)
         }
@@ -33,9 +60,45 @@ export class RoleService {
     // 更新角色
     async updateRole (dto: UpdateRoleDto) {
         try {
-            const { id } = dto
-            const res = await this.roleRepository.update(id, dto)
-            return res
+            const { id, menuIdList, ...args } = dto
+            // 角色已关联菜单id列表
+            const originMenuIdList = (
+                await this.roleMenuRepository.find({
+                    where: {
+                        roleId: id
+                    }
+                })
+            ).map((item) => item.menuId)
+
+            // 对比新增
+            const diffInsert = difference(menuIdList, originMenuIdList)
+            // 对比删除
+            const diffDelete = difference(originMenuIdList, menuIdList)
+
+            await this.entityManager.transaction(async (manager) => {
+                // 更新角色信息
+                await manager.update(Role, id, args)
+
+                // 对比新增
+                for (let i = 0; i < diffInsert.length; i++) {
+                    const menuId = diffInsert[i]
+                    const menu = await manager.findOneBy(Menu, {
+                        id: menuId
+                    })
+                    if (!menu) throw new Error(`不存在id为${menuId}的菜单记录`)
+                    await manager.insert(RoleMenu, { roleId: id, menuId })
+                }
+
+                // 对比删除
+                for (let i = 0; i < diffDelete.length; i++) {
+                    const menuId = diffDelete[i]
+                    const menu = await manager.findOneBy(Menu, {
+                        id: menuId
+                    })
+                    if (!menu) throw new Error(`不存在id为${menuId}的菜单记录`)
+                    await manager.delete(RoleMenu, { roleId: id, menuId })
+                }
+            })
         } catch (err) {
             ResponseData.error(err.message)
         }
@@ -62,10 +125,28 @@ export class RoleService {
         try {
             const { pageNum, pageSize, ...args } = dto
             const vagueSearchObj = genVagueSearchObj(args)
-            const pageOptions = genPageOptionsObj({ pageNum, pageSize })
-            const [list, total] = await this.roleRepository.findAndCount({
-                where: vagueSearchObj,
-                ...pageOptions
+            const [_list, total] = await this.roleRepository
+                .createQueryBuilder('role')
+                .leftJoinAndMapMany(
+                    'role.roleMenu',
+                    RoleMenu,
+                    'roleMenu',
+                    'role.id = roleMenu.roleId'
+                )
+                .where({ ...vagueSearchObj })
+                .skip(pageSize * (pageNum - 1))
+                .take(pageSize)
+                .getManyAndCount()
+
+            const list = (_list as IFindRoleList[]).map((user) => {
+                const { roleMenu, ...args } = user
+                const menus = roleMenu.map((roleMenu) => {
+                    return roleMenu.menuId
+                })
+                return {
+                    ...args,
+                    menus
+                }
             })
 
             return {
