@@ -55,6 +55,7 @@ export class UserService {
     async deleteUser (id: number) {
         try {
             const res = await this.userRepository.delete(id)
+            await this.userRoleRepository.delete({ userId: id })
             return res
         } catch (err) {
             ResponseData.error(err.message)

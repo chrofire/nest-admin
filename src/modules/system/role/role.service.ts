@@ -51,6 +51,7 @@ export class RoleService {
     async deleteRole (id: number) {
         try {
             const res = await this.roleRepository.delete(id)
+            await this.roleMenuRepository.delete({ roleId: id })
             return res
         } catch (err) {
             ResponseData.error(err.message)
