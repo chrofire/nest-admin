@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { APP_GUARD } from '@nestjs/core'
 import { JwtModule } from '@nestjs/jwt'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import config, { isDev } from 'config'
+import { AuthGuard } from 'src/guards/auth.guard'
 
 @Module({
     imports: [
@@ -31,6 +33,11 @@ import config, { isDev } from 'config'
         })
     ],
     exports: [JwtModule],
-    providers: []
+    providers: [
+        {
+            provide: APP_GUARD,
+            useClass: AuthGuard
+        }
+    ]
 })
 export class CommonModule {}

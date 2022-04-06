@@ -1,16 +1,19 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common'
-import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { OpenAuth } from 'src/decorators/openAuth.decorator'
 import { ResponseData } from 'src/utils/responseData'
 import { AddUserDto, DeleteUserDto, FindUserListDto, FindUserPageListDto, LoginDto, UpdateUserDto } from './user.dto'
 import { UserService } from './user.service'
 
 @Controller('user')
 @ApiTags('用户')
+@ApiBearerAuth()
 export class UserController {
     constructor (private readonly userService: UserService) {}
 
     @Post('login')
     @ApiOperation({ summary: '登录' })
+    @OpenAuth()
     async login (@Body() dto: LoginDto) {
         const res = await this.userService.loginUser(dto)
         return ResponseData.success(res, '登录成功')

@@ -1,11 +1,12 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common'
-import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ResponseData } from 'src/utils/responseData'
 import { AddDeptDto, DeleteDeptDto, FindDeptListDto, UpdateDeptDto } from './dept.dto'
 import { DeptService } from './dept.service'
 
 @Controller('dept')
 @ApiTags('部门')
+@ApiBearerAuth()
 export class DeptController {
     constructor (private readonly deptService: DeptService) {}
     
