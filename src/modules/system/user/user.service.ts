@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
-import { difference } from 'lodash'
+import { difference, flattenDeep, unionBy } from 'lodash'
+import { Menu } from 'src/entities/menu.entity'
 import { Role } from 'src/entities/role.entity'
+import { RoleMenu } from 'src/entities/roleMenu.entity'
 import { User } from 'src/entities/user.entity'
 import { UserRole } from 'src/entities/userRole.entity'
 import { Bcrypt } from 'src/utils/bcrypt'
@@ -252,4 +254,46 @@ export class UserService {
         }
     }
 
+    // 查询当前用户信息
+    async findCurrentUserInfo (id: number) {
+        const user: any = await this.userRepository.createQueryBuilder('user')
+            .leftJoinAndMapMany('user.userRole', UserRole, 'userRole', 'user.id = userRole.userId')
+            .leftJoinAndMapOne('userRole.role', Role, 'role', 'userRole.roleId = role.id')
+            .leftJoinAndMapMany('userRole.roleMenu', RoleMenu, 'roleMenu', 'userRole.roleId = roleMenu.roleId')
+            .leftJoinAndMapOne('roleMenu.menu', Menu, 'menu', 'roleMenu.menuId = menu.id')
+            // .where('menu.state = :state', { state: 0 })
+            // .where('role.state = :state', { state: 0 })
+            // .where('user.id = :id', { id })
+            .where('user.id = :id and role.state = :state and menu.state = :state', { id, state: 0 })
+            .getOne()
+        
+        // 用户所有启用的角色
+        const roles: Role[] = user.userRole.map((_userRole) => {
+            return _userRole.role
+        })
+
+        // 用户所有启用的角色具备的所有启用的菜单
+        const allMenuList = user.userRole.map((_userRole) => {
+            return _userRole.roleMenu.map((_roleMenu) => {
+                return _roleMenu.menu
+            })
+        })
+
+        // 所有菜单扁平化，并根据id去重
+        const menuList: Menu[] = unionBy(flattenDeep(allMenuList), 'id')
+       
+        // 用户具有的目录和菜单
+        const menus = menuList.filter((item) => [0, 1].includes(item.type))
+
+        // 用户具有的接口权限
+        const permissions = menuList.filter((item) => [2].includes(item.type))
+        
+        Reflect.deleteProperty(user, 'userRole')
+        Object.assign(user, {
+            roles,
+            menus,
+            permissions
+        })
+        return user
+    }
 }

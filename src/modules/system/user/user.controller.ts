@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common'
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { OpenAuth } from 'src/decorators/openAuth.decorator'
 import { ResponseData } from 'src/utils/responseData'
@@ -65,6 +65,14 @@ export class UserController {
     @ApiOperation({ summary: '分页查询用户列表' })
     async pageList (@Query() dto: FindUserPageListDto) {
         const res = await this.userService.findUserPageList(dto)
+        return ResponseData.success(res, '查询成功')
+    }
+
+    @Get('userInfo')
+    @ApiOperation({ summary: '查询当前用户信息' })
+    async userInfo (@Req() req) {
+        const { id } = req.user
+        const res = await this.userService.findCurrentUserInfo(id)
         return ResponseData.success(res, '查询成功')
     }
 }
