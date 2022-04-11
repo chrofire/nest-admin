@@ -5,6 +5,8 @@ import { JwtModule } from '@nestjs/jwt'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import config, { isDev } from 'config'
 import { AuthGuard } from 'src/guards/auth.guard'
+import { PermissionGuard } from 'src/guards/permission.guard'
+import { UserModule } from './system/user/user.module'
 
 @Module({
     imports: [
@@ -30,13 +32,18 @@ import { AuthGuard } from 'src/guards/auth.guard'
                     signOptions: { expiresIn: config.get('jwt').expiresIn }
                 }
             }
-        })
+        }),
+        UserModule
     ],
     exports: [JwtModule],
     providers: [
         {
             provide: APP_GUARD,
             useClass: AuthGuard
+        },
+        {
+            provide: APP_GUARD,
+            useClass: PermissionGuard
         }
     ]
 })

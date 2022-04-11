@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { OpenAuth } from 'src/decorators/openAuth.decorator'
+import { Permission } from 'src/decorators/permission.decorator'
 import { ResponseData } from 'src/utils/responseData'
 import { AddUserDto, DeleteUserDto, FindUserListDto, FindUserPageListDto, LoginDto, UpdateUserDto, UpdateUserPasswordDto } from './user.dto'
 import { UserService } from './user.service'
@@ -20,6 +21,7 @@ export class UserController {
     }
 
     @Post('add')
+    @Permission('system:user:add')
     @ApiOperation({ summary: '添加用户' })
     async add (@Body() dto: AddUserDto) {
         const { username } = dto
@@ -32,6 +34,7 @@ export class UserController {
     }
 
     @Post('delete')
+    @Permission('system:user:delete')
     @ApiOperation({ summary: '删除用户' })
     async delete (@Body() dto: DeleteUserDto) {
         const { id } = dto
@@ -43,6 +46,7 @@ export class UserController {
     }
 
     @Post('update')
+    @Permission('system:user:update')
     @ApiOperation({ summary: '更新用户' })
     async update (@Body() dto: UpdateUserDto) {
         const { id, username } = dto
@@ -55,6 +59,7 @@ export class UserController {
     }
 
     @Get('list')
+    @Permission('system:user:list')
     @ApiOperation({ summary: '查询用户列表' })
     async list (@Query() dto: FindUserListDto) {
         const res = await this.userService.findUserList(dto)
@@ -62,6 +67,7 @@ export class UserController {
     }
 
     @Get('pageList')
+    @Permission('system:user:pageList')
     @ApiOperation({ summary: '分页查询用户列表' })
     async pageList (@Query() dto: FindUserPageListDto) {
         const res = await this.userService.findUserPageList(dto)
@@ -77,6 +83,7 @@ export class UserController {
     }
 
     @Post('updatePassword')
+    @Permission('system:user:updatePassword')
     @ApiOperation({ summary: '更新当前用户密码' })
     async updatePassword (@Req() req, @Body() dto: UpdateUserPasswordDto) {
         const { id } = req.user

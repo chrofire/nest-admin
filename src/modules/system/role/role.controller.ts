@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { Permission } from 'src/decorators/permission.decorator'
 import { ResponseData } from 'src/utils/responseData'
 import { AddRoleDto, DeleteRoleDto, FindRoleListDto, FindRolePageListDto, UpdateRoleDto } from './role.dto'
 import { RoleService } from './role.service'
@@ -11,6 +12,7 @@ export class RoleController {
     constructor (private readonly roleService: RoleService) {}
 
     @Post('add')
+    @Permission('system:role:add')
     @ApiOperation({ summary: '添加角色' })
     async add (@Body() dto: AddRoleDto) {
         const { name } = dto
@@ -23,6 +25,7 @@ export class RoleController {
     }
 
     @Post('delete')
+    @Permission('system:role:delete')
     @ApiOperation({ summary: '删除角色' })
     async delete (@Body() dto: DeleteRoleDto) {
         const { id } = dto
@@ -34,6 +37,7 @@ export class RoleController {
     }
 
     @Post('update')
+    @Permission('system:role:update')
     @ApiOperation({ summary: '更新角色' })
     async update (@Body() dto: UpdateRoleDto) {
         const { id, name } = dto
@@ -46,6 +50,7 @@ export class RoleController {
     }
 
     @Get('list')
+    @Permission('system:role:list')
     @ApiOperation({ summary: '查询角色列表' })
     async list (@Query() dto: FindRoleListDto) {
         const res = await this.roleService.findRoleList(dto)
@@ -53,6 +58,7 @@ export class RoleController {
     }
 
     @Get('pageList')
+    @Permission('system:role:pageList')
     @ApiOperation({ summary: '分页查询角色列表' })
     async pageList (@Query() dto: FindRolePageListDto) {
         const res = await this.roleService.findRolePageList(dto)

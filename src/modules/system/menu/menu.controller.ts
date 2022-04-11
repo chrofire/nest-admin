@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { Permission } from 'src/decorators/permission.decorator'
 import { ResponseData } from 'src/utils/responseData'
 import { AddMenuDto, DeleteMenuDto, FindMenuListDto, UpdateMenuDto } from './menu.dto'
 import { MenuService } from './menu.service'
@@ -11,6 +12,7 @@ export class MenuController {
     constructor (private readonly menuService: MenuService) {}
     
     @Post('add')
+    @Permission('system:menu:add')
     @ApiOperation({ summary: '添加菜单' })
     async add (@Body() dto: AddMenuDto) {
         const { name } = dto
@@ -23,6 +25,7 @@ export class MenuController {
     }
 
     @Post('delete')
+    @Permission('system:menu:delete')
     @ApiOperation({ summary: '删除菜单' })
     async delete (@Body() dto: DeleteMenuDto) {
         const { id } = dto
@@ -38,6 +41,7 @@ export class MenuController {
     }
 
     @Post('update')
+    @Permission('system:menu:update')
     @ApiOperation({ summary: '更新菜单' })
     async update (@Body() dto: UpdateMenuDto) {
         const { id, name } = dto
@@ -53,6 +57,7 @@ export class MenuController {
     }
 
     @Get('list')
+    @Permission('system:menu:list')
     @ApiOperation({ summary: '查询菜单列表' })
     async list (@Query() dto: FindMenuListDto) {
         const res = await this.menuService.findMenuList(dto)
