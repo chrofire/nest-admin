@@ -12,7 +12,7 @@ import { genVagueSearchObj } from 'src/utils/ormUtils'
 import { ResponseData } from 'src/utils/responseData'
 import { EntityManager, In, Repository } from 'typeorm'
 import { DeptService } from '../dept/dept.service'
-import { AddUserDto, FindUserListDto, FindUserPageListDto, LoginDto, UpdateUserDto } from './user.dto'
+import { AddUserDto, FindUserListDto, FindUserPageListDto, LoginDto, UpdateUserDto, UpdateUserPasswordDto } from './user.dto'
 
 interface IFindUserList extends User {
     userRole?: ({ role: Role })[],
@@ -226,6 +226,15 @@ export class UserService {
         return user
     }
 
+    // 根据id查找用户
+    async findUserById (id: number) {
+        const user = await this.userRepository.createQueryBuilder('user')
+            .where({ id })
+            .addSelect(['user.password'])
+            .getOne()
+        return user
+    }
+
     // 登录用户
     async loginUser (dto: LoginDto) {
         try {
@@ -295,5 +304,22 @@ export class UserService {
             permissions
         })
         return user
+    }
+
+    // 更新密码
+    async updatePassword (id: number, dto: UpdateUserPasswordDto) {
+        const user = await this.findUserById(id)
+
+        const { oldPassword, password } = dto
+
+        // 对比密码
+        const validPassword = Bcrypt.decrypt(oldPassword, user.password)
+        if (!validPassword) ResponseData.error('旧密码错误')
+
+        // 密码加密
+        const newPassword = Bcrypt.encrypt(password)
+
+        const res = this.userRepository.update(id, { password: newPassword })
+        return res
     }
 }

@@ -101,3 +101,12 @@ export class FindUserListDto {
 export class FindUserPageListDto extends IntersectionType(FindUserListDto, PageOptionsDto) {}
 
 export class LoginDto extends PickType(AddUserDto, ['username', 'password'] as const) {}
+
+export class UpdateUserPasswordDto extends PickType(AddUserDto, ['password'] as const) {
+    @ApiProperty({ description: '旧密码' })
+    @MaxLength(20)
+    @MinLength(3)
+    @IsString()
+    @IsNotEmpty()
+    public oldPassword: string
+}

@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { OpenAuth } from 'src/decorators/openAuth.decorator'
 import { ResponseData } from 'src/utils/responseData'
-import { AddUserDto, DeleteUserDto, FindUserListDto, FindUserPageListDto, LoginDto, UpdateUserDto } from './user.dto'
+import { AddUserDto, DeleteUserDto, FindUserListDto, FindUserPageListDto, LoginDto, UpdateUserDto, UpdateUserPasswordDto } from './user.dto'
 import { UserService } from './user.service'
 
 @Controller('user')
@@ -74,5 +74,13 @@ export class UserController {
         const { id } = req.user
         const res = await this.userService.findCurrentUserInfo(id)
         return ResponseData.success(res, '查询成功')
+    }
+
+    @Post('updatePassword')
+    @ApiOperation({ summary: '更新当前用户密码' })
+    async updatePassword (@Req() req, @Body() dto: UpdateUserPasswordDto) {
+        const { id } = req.user
+        await this.userService.updatePassword(id, dto)
+        return ResponseData.success(null, '更新成功')
     }
 }
