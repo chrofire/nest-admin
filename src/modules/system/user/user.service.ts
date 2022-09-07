@@ -23,6 +23,9 @@ export class UserService {
     constructor (
         @InjectRepository(User) private readonly userRepository: Repository<User>,
         @InjectRepository(UserRole) private readonly userRoleRepository: Repository<UserRole>,
+        @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
+        @InjectRepository(RoleMenu) private readonly roleMenuRepository: Repository<RoleMenu>,
+        @InjectRepository(Menu) private readonly menuRepository: Repository<Menu>,
         @InjectEntityManager() private readonly entityManager: EntityManager,
         private readonly deptService: DeptService,
         private readonly jwtService: JwtService
@@ -265,45 +268,46 @@ export class UserService {
 
     // 查询当前用户信息
     async findCurrentUserInfo (id: number) {
-        const user: any = await this.userRepository.createQueryBuilder('user')
-            .leftJoinAndMapMany('user.userRole', UserRole, 'userRole', 'user.id = userRole.userId')
-            .leftJoinAndMapOne('userRole.role', Role, 'role', 'userRole.roleId = role.id')
-            .leftJoinAndMapMany('userRole.roleMenu', RoleMenu, 'roleMenu', 'userRole.roleId = roleMenu.roleId')
-            .leftJoinAndMapOne('roleMenu.menu', Menu, 'menu', 'roleMenu.menuId = menu.id')
-            // .where('menu.state = :state', { state: 0 })
-            // .where('role.state = :state', { state: 0 })
-            // .where('user.id = :id', { id })
-            .where('user.id = :id and role.state = :state and menu.state = :state', { id, state: 0 })
-            .getOne()
-        
+        const user = await this.userRepository.findOne({ where: { id }})
+
+        const userRole = await this.userRoleRepository.find({ where: { userId: id }})
+
         // 用户所有启用的角色
-        const roles: Role[] = user.userRole.map((_userRole) => {
-            return _userRole.role
+        const roles = await this.roleRepository.find({
+            where: {
+                id: In(userRole.map((_userRole) => _userRole.roleId)),
+                state: 0
+            }
         })
 
-        // 用户所有启用的角色具备的所有启用的菜单
-        const allMenuList = user.userRole.map((_userRole) => {
-            return _userRole.roleMenu.map((_roleMenu) => {
-                return _roleMenu.menu
-            })
+        const roleMenu = await this.roleMenuRepository.find({
+            where: {
+                roleId: In(roles.map((role) => role.id))
+            }
         })
 
-        // 所有菜单扁平化，并根据id去重
-        const menuList: Menu[] = unionBy(flattenDeep(allMenuList), 'id')
-       
+        // 用户所有启用的角色具备的所有启用的菜单，已去重(id)
+        const menuList = await this.menuRepository.find({
+            where: {
+                id: In(roleMenu.map((_roleMenu) => _roleMenu.menuId)),
+                state: 0
+            }
+        })
+
         // 用户具有的目录和菜单
         const menus = menuList.filter((item) => [0, 1].includes(item.type))
 
         // 用户具有的接口权限
         const permissions = menuList.filter((item) => [2].includes(item.type))
-        
-        Reflect.deleteProperty(user, 'userRole')
-        Object.assign(user, {
+
+        const info = {
             roles,
             menus,
             permissions
-        })
-        return user
+        }
+        Object.assign(user, info)
+
+        return user as User & typeof info
     }
 
     // 更新密码
