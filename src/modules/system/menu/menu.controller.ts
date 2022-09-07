@@ -29,9 +29,15 @@ export class MenuController {
     @ApiOperation({ summary: '删除菜单' })
     async delete (@Body() dto: DeleteMenuDto) {
         const { id } = dto
-        
+
         const menus = await this.menuService.findChildrenMenusById(id)
-        if (menus.length)return ResponseData.error('菜单存在子级，无法删除')
+        if (menus.length) return ResponseData.error('菜单存在子级，无法删除')
+
+        const roles = await this.menuService.findRolesById(id)
+        const rolesMessage = roles.map((role) => {
+            return `{ id: ${role.id}, name: ${role.name} }`
+        })
+        if (roles.length) return ResponseData.error(`菜单已被角色关联，无法删除，请先取消关联再删除菜单。角色列表：[${rolesMessage.join(', ')}]`)
 
         const { affected } = await this.menuService.deleteMenu(id)
         if (affected < 1) {

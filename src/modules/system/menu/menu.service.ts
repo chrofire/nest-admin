@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Menu } from 'src/entities/menu.entity'
+import { Role } from 'src/entities/role.entity'
+import { RoleMenu } from 'src/entities/roleMenu.entity'
 import { genVagueSearchObj } from 'src/utils/ormUtils'
 import { ResponseData } from 'src/utils/responseData'
 import { Repository } from 'typeorm'
@@ -73,5 +75,20 @@ export class MenuService {
                 parentId: id
             }
         })
+    }
+
+    // 根据id查找关联此菜单的角色列表
+    async findRolesById (id: number) {
+        const menu: any = await this.menuRepository.createQueryBuilder('menu')
+            .leftJoinAndMapMany('menu.menuRole', RoleMenu, 'menuRole', 'menu.id = menuRole.menuId')
+            .leftJoinAndMapOne('menuRole.role', Role, 'role', 'menuRole.roleId = role.id')
+            .where('menu.id = :id', { id })
+            .getOne()
+        
+        const roles: Role[] = menu.menuRole.map((_menuRole) => {
+            return _menuRole.role
+        })
+
+        return roles
     }
 }
