@@ -24,6 +24,13 @@ export class DeptController {
     @ApiOperation({ summary: '删除部门' })
     async delete (@Body() dto: DeleteDeptDto) {
         const { id } = dto
+
+        const users = await this.deptService.findUsersByDeptId(id)
+        if (users.length) return ResponseData.error('部门被用户关联，无法删除')
+
+        const usersInSubDepts = await this.deptService.findUsersInSubDeptsByDeptId(id)
+        if (usersInSubDepts.length) return ResponseData.error('存在子级部门被用户关联，无法删除')
+
         const { affected } = await this.deptService.deleteDept(id)
         if (affected < 1) {
             return ResponseData.error(`删除失败，未找到id为${id}的记录`)
