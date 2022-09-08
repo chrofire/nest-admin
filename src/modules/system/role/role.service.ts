@@ -4,6 +4,8 @@ import { difference } from 'lodash'
 import { Menu } from 'src/entities/menu.entity'
 import { Role } from 'src/entities/role.entity'
 import { RoleMenu } from 'src/entities/roleMenu.entity'
+import { User } from 'src/entities/user.entity'
+import { UserRole } from 'src/entities/userRole.entity'
 import { genVagueSearchObj } from 'src/utils/ormUtils'
 import { ResponseData } from 'src/utils/responseData'
 import { EntityManager, Repository } from 'typeorm'
@@ -169,4 +171,20 @@ export class RoleService {
             }
         })
     }
+
+    // 根据角色id查找用户列表
+    async findUsersById (id: number) {
+        const role: any = await this.roleRepository.createQueryBuilder('role')
+            .leftJoinAndMapMany('role.roleUser', UserRole, 'roleUser', 'role.id = roleUser.roleId')
+            .leftJoinAndMapOne('roleUser.user', User, 'user', 'roleUser.userId = user.id')
+            .where('role.id = :id', { id })
+            .getOne()
+    
+        const users: User[] = role.roleUser.map((_roleUser) => {
+            return _roleUser.user
+        })
+    
+        return users
+    }
+    
 }

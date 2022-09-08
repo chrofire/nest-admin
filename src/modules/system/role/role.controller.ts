@@ -29,6 +29,13 @@ export class RoleController {
     @ApiOperation({ summary: '删除角色' })
     async delete (@Body() dto: DeleteRoleDto) {
         const { id } = dto
+
+        const users = await this.roleService.findUsersById(id)
+        const usersMessage = users.map((user) => {
+            return `{ id: ${user.id}, name: ${user.username} }`
+        })
+        if (users.length) return ResponseData.error(`角色已被用户关联，无法删除，请先取消关联再删除角色。用户列表：[${usersMessage.join(', ')}]`)
+        
         const { affected } = await this.roleService.deleteRole(id)
         if (affected < 1) {
             return ResponseData.error(`删除失败，未找到id为${id}的记录`)
