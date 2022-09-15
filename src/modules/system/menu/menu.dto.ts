@@ -9,7 +9,7 @@ export class AddMenuDto {
 
     @ApiProperty({ description: '菜单名称' })
     @MaxLength(20)
-    @MinLength(3)
+    @MinLength(1)
     @IsString()
     @IsNotEmpty()
     public name: string
